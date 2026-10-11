@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Merchant Churn Study</title>
+<meta name="description" content="Merchant churn prediction, difference-in-differences and an A/B test of a retention workflow.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Public+Sans:wght@400;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: single-column case study — numbers first, then the three analyses. */
+:root{--bg:#F5F6F8;--paper:#FFFFFF;--ink:#16202B;--muted:#5A6573;--line:#D8DDE4;--accent:#2F5D8A;--warm:#C2410C;
+  --display:"Archivo","Arial Narrow",system-ui,sans-serif;--body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10151C;--paper:#171E27;--ink:#E3E8EE;--muted:#98A3B1;--line:#2A3440;--accent:#7FB0E0;--warm:#F08A5D;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10151C;--paper:#171E27;--ink:#E3E8EE;--muted:#98A3B1;--line:#2A3440;--accent:#7FB0E0;--warm:#F08A5D;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--body)}
+.wrap{max-width:880px;margin:0 auto;padding-inline:20px;padding-block:36px 56px}
+.eyebrow{font:12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:800 clamp(30px,5vw,44px)/1.05 var(--display);margin:6px 0 10px;text-wrap:balance}
+h2{font:600 21px var(--display);margin:0 0 8px}
+p{max-width:68ch;margin:0 0 12px}
+.lede{color:var(--muted)}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.links a{font:500 14px var(--body);color:var(--ink);text-decoration:none;border:1px solid var(--line);background:var(--paper);padding:8px 14px;border-radius:999px}
+.links a:hover,.links a:focus-visible{border-color:var(--accent);outline:none}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin:28px 0}
+.stat{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:16px}
+.stat b{display:block;font:500 28px var(--mono);font-variant-numeric:tabular-nums}
+.stat span{font-size:13px;color:var(--muted)}
+section{border-top:1px solid var(--line);padding-top:24px;margin-top:28px}
+.tablewrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0 12px}
+th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th{font:600 12px var(--mono);text-transform:uppercase;color:var(--muted)} td{font-family:var(--mono)}
+svg{width:100%;max-width:560px;height:auto;display:block;margin:8px 0}
+svg .grid{stroke:var(--line)} svg .tick{fill:var(--muted);font:11px var(--mono)}
+svg .event{stroke:var(--muted);stroke-dasharray:4 4} svg .line{fill:none;stroke:var(--warm);stroke-width:2.5} svg .dot{fill:var(--warm)}
+.note{font-size:14px;color:var(--muted)}
+code{font:13px var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Payments · merchant retention</div>
+  <h1>Merchant Churn Study</h1>
+  <p class="lede">Which merchants will stop processing in the next three months, what is really driving it, and does calling them early keep them? A churn model, a causal analysis and a randomised test on 10,000 merchants over 2025.</p>
+  <div class="links"><a href="https://github.com/martinogie/merchant-churn-prediction">Source code on GitHub</a><a href="https://martinogie.github.io/credit-risk-scoring/">Also: Loan Scorecard Studio</a></div>
+
+  <div class="stats">
+    <div class="stat"><b>0.50</b><span>PR-AUC vs. 9.5% churn base rate</span></div>
+    <div class="stat"><b>67%</b><span>of alerts are merchants who really leave</span></div>
+    <div class="stat"><b>-8.3%</b><span>volume effect of the payout-verification change</span></div>
+    <div class="stat"><b>$54K</b><span>annual revenue retained in the A/B test</span></div>
+  </div>
+
+  <section>
+    <h2>1. Predicting churn</h2>
+    <p>A Random Forest scores each merchant monthly from point-in-time features: volume against its own three-month average, seasonally adjusted trend, active days, failed payments, payout delays and support tickets. SMOTE balances the training months only, and the alert threshold is tuned on a later month before testing on August and September.</p>
+    <div class="tablewrap"><table><thead><tr><th style="text-align:left">Test months</th><th>Precision</th><th>Recall</th><th>F1</th><th>ROC-AUC</th><th>PR-AUC</th></tr></thead>
+    <tbody><tr><td style="text-align:left">Aug–Sep 2025</td><td>0.666</td><td>0.368</td><td>0.475</td><td>0.800</td><td>0.504</td></tr></tbody></table></div>
+    <p class="note">Accuracy is 92.3%, but with 9.5% of merchants churning, accuracy says little. Precision at the alert threshold sets how much account-manager time is wasted.</p>
+  </section>
+
+  <section>
+    <h2>2. Seasonal dip or product problem?</h2>
+    <p>In July, merchants on the plugin integration moved to a new payout verification flow. Volume also swings with the seasons, so a before/after comparison mixes the two. Difference-in-differences with merchant and month fixed effects compares plugin merchants to everyone else over the same months.</p>
+    <svg viewBox="0 0 560 240" role="img" aria-label="Event study chart: gap in log volume between plugin and other merchants by month">
+<line x1="52" x2="544" y1="16.0" y2="16.0" class="grid"/><text x="44" y="20.0" text-anchor="end" class="tick">+0.04</text>
+<line x1="52" x2="544" y1="69.7" y2="69.7" class="grid"/><text x="44" y="73.7" text-anchor="end" class="tick">+0.00</text>
+<line x1="52" x2="544" y1="123.4" y2="123.4" class="grid"/><text x="44" y="127.4" text-anchor="end" class="tick">-0.04</text>
+<line x1="52" x2="544" y1="177.1" y2="177.1" class="grid"/><text x="44" y="181.1" text-anchor="end" class="tick">-0.08</text>
+<line x1="298.0" x2="298.0" y1="16" y2="204" class="event"/><text x="304.0" y="28" class="tick">Payout verification launched</text>
+<text x="52.0" y="228" text-anchor="middle" class="tick">Jan</text>
+<text x="186.2" y="228" text-anchor="middle" class="tick">Apr</text>
+<text x="320.4" y="228" text-anchor="middle" class="tick">Jul</text>
+<text x="454.5" y="228" text-anchor="middle" class="tick">Oct</text>
+<text x="544.0" y="228" text-anchor="middle" class="tick">Dec</text>
+<path d="M52.0,62.7 L96.7,68.9 L141.5,68.8 L186.2,66.5 L230.9,65.0 L275.6,86.3 L320.4,177.8 L365.1,176.9 L409.8,174.0 L454.5,189.3 L499.3,192.6 L544.0,208.5" class="line"/>
+<circle cx="52.0" cy="62.7" r="3.5" class="dot"/>
+<circle cx="96.7" cy="68.9" r="3.5" class="dot"/>
+<circle cx="141.5" cy="68.8" r="3.5" class="dot"/>
+<circle cx="186.2" cy="66.5" r="3.5" class="dot"/>
+<circle cx="230.9" cy="65.0" r="3.5" class="dot"/>
+<circle cx="275.6" cy="86.3" r="3.5" class="dot"/>
+<circle cx="320.4" cy="177.8" r="3.5" class="dot"/>
+<circle cx="365.1" cy="176.9" r="3.5" class="dot"/>
+<circle cx="409.8" cy="174.0" r="3.5" class="dot"/>
+<circle cx="454.5" cy="189.3" r="3.5" class="dot"/>
+<circle cx="499.3" cy="192.6" r="3.5" class="dot"/>
+<circle cx="544.0" cy="208.5" r="3.5" class="dot"/>
+</svg>
+    <p>The friction cut plugin merchants' volume by <b>-8.3%</b> (95% CI -9.1% to -7.5%). The groups moved together before July (pre-trend p = 0.16).</p>
+  </section>
+
+  <section>
+    <h2>3. Does early outreach work?</h2>
+    <p>Merchants flagged in September were randomly split. Half got an account-manager call within 24 hours; half got nothing extra.</p>
+    <div class="tablewrap"><table><thead><tr><th style="text-align:left">Group</th><th>Merchants</th><th>Churned</th></tr></thead>
+    <tbody><tr><td style="text-align:left">Control</td><td>214</td><td>70.1%</td></tr>
+    <tr><td style="text-align:left">Outreach</td><td>202</td><td>60.4%</td></tr></tbody></table></div>
+    <p>Churn fell by 9.7 points (p = 0.038), about 20 merchants and $53,506 a year at a 1.5% take rate.</p>
+  </section>
+
+  <section>
+    <h2>Scoring in production</h2>
+    <p>A Flask endpoint returns a churn probability, risk tier and recommended action for each merchant, with p95 latency under 50 ms in tests. A Dockerfile packages the API with a trained model.</p>
+    <p class="note">All data is synthetic, generated with known effects so every method can be checked against the truth; the A/B outcomes are simulated from an assumed outreach effect. Built with AI-assisted coding (Claude); modeling choices, validation and review by Martins Ogiekpolor.</p>
+  </section>
+</div>
+</body>
+</html>
