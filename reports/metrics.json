@@ -1,0 +1,71 @@
+{
+  "data": {
+    "merchants": 10000,
+    "months": 12,
+    "train_snapshots": 38250,
+    "valid_snapshots": 8993,
+    "test_snapshots": 17355,
+    "annual_churn_rate": 0.22729999999999995
+  },
+  "model_test": {
+    "accuracy": 0.9227888216652261,
+    "precision": 0.6662995594713657,
+    "recall": 0.3684531059683313,
+    "f1": 0.4745098039215686,
+    "roc_auc": 0.7997581542797251,
+    "pr_auc": 0.5042749407075056,
+    "threshold": 0.6399999999999999,
+    "base_rate": 0.09461250360126765,
+    "n": 17355
+  },
+  "top_features": {
+    "tpv_vs_3m": 0.2763,
+    "tickets_3m": 0.1705,
+    "active_days": 0.1648,
+    "chargebacks_3m": 0.1079,
+    "tpv_trend_sa": 0.0689,
+    "active_days_change": 0.0551,
+    "log_tpv": 0.0397,
+    "tenure_months": 0.0268,
+    "txn_count": 0.0264,
+    "failed_rate_3m": 0.0204
+  },
+  "diff_in_diff": {
+    "effect_log_tpv": -0.08698327702626174,
+    "se": 0.004541708826598296,
+    "t": -19.152103392636803,
+    "p_value": 6.4758603858021045e-80,
+    "ci95": [
+      -0.0958850263263944,
+      -0.07808152772612909
+    ],
+    "effect_pct_tpv": -0.08330757467167228,
+    "merchants": 7727
+  },
+  "true_friction_effect_log_tpv": -0.08,
+  "pretrend_test": {
+    "slope_treated": 0.024605574322000463,
+    "slope_control": 0.026270155546700567,
+    "t": -1.403124617747281,
+    "p_value": 0.16061447579685226
+  },
+  "naive_before_after": {
+    "naive_change_log_tpv": -0.07108556328941695
+  },
+  "ab_test": {
+    "n_treatment": 202,
+    "n_control": 214,
+    "churn_treatment": 0.6039603960396039,
+    "churn_control": 0.7009345794392523,
+    "absolute_reduction": 0.09697418339964836,
+    "relative_reduction": 0.13834983498349834,
+    "z": -2.077876205397447,
+    "p_value": 0.03772076263132726,
+    "ci95_difference": [
+      -0.1881442619650245,
+      -0.005804104834272211
+    ],
+    "merchants_retained": 19.58878504672897,
+    "annual_revenue_retained_usd": 53505.78704773544
+  }
+}

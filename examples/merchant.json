@@ -1,0 +1,7 @@
+{
+  "merchant_id": 1042,
+  "log_tpv": 8.9, "tpv_trend_sa": -0.42, "tpv_vs_3m": -0.55, "txn_count": 96,
+  "active_days": 9, "active_days_change": -6, "failed_rate_3m": 0.061, "payout_delay_3m": 2.4,
+  "tickets_3m": 1.7, "chargebacks_3m": 0.0, "tenure_months": 14,
+  "segment": "SMB", "integration": "plugin", "plan": "standard"
+}
