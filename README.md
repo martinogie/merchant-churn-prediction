@@ -76,7 +76,7 @@ volume, and fading activity before churn), so each method can be checked against
 
 ## How this was built
 
-Built with AI-assisted coding (Claude). Modeling choices, validation and review are my own.
+Built with AI-assisted coding. Modeling choices, validation and review are my own.
 
 ## License
 
